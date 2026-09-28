@@ -60,11 +60,28 @@ static let equals = MorphIcon(
     id: "equals", name: "Equals", family: nil,
     lines: [
         IconLine(start: CGPoint(x: 0.14, y: 0.38), end: CGPoint(x: 0.86, y: 0.38)),
-        .collapsed,
+        .collapsed(at: CGPoint(x: 0.5, y: 0.38)),
         IconLine(start: CGPoint(x: 0.14, y: 0.62), end: CGPoint(x: 0.86, y: 0.62))
     ],
     rotationDegrees: 0
 )
+```
+
+## Claude skill
+
+[`skills/morphing-icons`](skills/morphing-icons) packages this technique as a skill for Claude Code (and other agents that read `SKILL.md`). It includes the SwiftUI component, a framework-free JS/SVG port with a demo page, a guide to drawing new icons in three lines, and a validator that checks the three rules and suggests the best line order for a pair of icons.
+
+To install it for yourself:
+
+```sh
+cp -r skills/morphing-icons ~/.claude/skills/
+```
+
+Or copy it into a project's `.claude/skills/` so everyone working in that repo gets it. After that, ask Claude for things like "make the nav menu button morph into a close icon" or "add a pause icon to the morphing set".
+
+```sh
+node skills/morphing-icons/scripts/validate-icons.mjs            # check the catalog
+node skills/morphing-icons/scripts/validate-icons.mjs --pair menu close
 ```
 
 ## Requirements
