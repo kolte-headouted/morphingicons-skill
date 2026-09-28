@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Morphing Icons</title>
+<style>
+  :root {
+    --bg: #f5f5f5; --card: #fff; --text: #0f0f0f; --muted: #545454;
+    --hairline: #e3e3e3; --selected: #a0a0a0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f0f0f; --card: #1c1c1c; --text: #f5f5f5; --muted: #a0a0a0; --hairline: #2e2e2e; --selected: #6a6a6a; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 system-ui, sans-serif; }
+  main { max-width: 420px; margin: 0 auto; padding: 20px 16px; display: grid; gap: 24px; }
+  .card { background: var(--card); border-radius: 24px; padding: 40px 0 32px; display: grid; justify-items: center; gap: 20px; }
+  #preview { width: 150px; height: 150px; }
+  #name { font-weight: 600; font-size: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 12px; }
+  .cell { all: unset; cursor: pointer; display: grid; gap: 8px; justify-items: center; font-size: 10px; color: var(--muted); transition: transform 160ms ease-out; }
+  .cell:active { transform: scale(0.96); }
+  .cell .tile { width: 100%; height: 56px; display: grid; place-items: center; background: var(--card); border: 1px solid var(--hairline); border-radius: 14px; }
+  .cell .tile svg { width: 26px; height: 26px; color: var(--text); overflow: visible; }
+  .cell[aria-pressed="true"] { color: var(--text); }
+  .cell[aria-pressed="true"] .tile { border: 1.6px solid var(--selected); }
+  .cell:focus-visible .tile { outline: 2px solid var(--selected); outline-offset: 2px; }
+  .controls { display: flex; gap: 8px; justify-content: center; }
+  .seg { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: color-mix(in srgb, var(--hairline) 55%, transparent); flex: 1; max-width: 280px; }
+  .seg button, .speed { all: unset; cursor: pointer; flex: 1; text-align: center; height: 32px; line-height: 32px; border-radius: 999px; font-weight: 600; font-size: 12px; color: var(--muted); }
+  .seg button[aria-pressed="true"] { background: var(--card); color: var(--text); box-shadow: 0 1px 4px rgb(0 0 0 / 0.08); }
+  .speed { flex: 0 0 64px; height: 40px; line-height: 40px; background: var(--card); border: 1px solid var(--hairline); color: var(--text); }
+  .speed[data-slow="true"] { background: var(--text); color: var(--bg); border-color: transparent; }
+</style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <div id="preview"></div>
+    <div id="name">Plus</div>
+  </section>
+  <div class="grid" id="grid"></div>
+  <div class="controls">
+    <div class="seg" id="styles"></div>
+    <button class="speed" id="speed">1×</button>
+  </div>
+</main>
+<script type="module">
+  import { MorphingIcon, catalog, icons, iconSVG } from "./morphing-icons.js";
+
+  const morph = new MorphingIcon(document.getElementById("preview"), { icon: icons.plus });
+  const name = document.getElementById("name");
+  const grid = document.getElementById("grid");
+
+  for (const icon of catalog) {
+    const b = document.createElement("button");
+    b.className = "cell";
+    b.dataset.id = icon.id;
+    b.setAttribute("aria-pressed", icon === icons.plus);
+    b.innerHTML = `<span class="tile">${iconSVG(icon)}</span>${icon.name}`;
+    b.onclick = () => {
+      morph.set(icon);
+      name.textContent = icon.name;
+      grid.querySelectorAll(".cell").forEach((c) => c.setAttribute("aria-pressed", c === b));
+    };
+    grid.appendChild(b);
+  }
+
+  const styles = document.getElementById("styles");
+  for (const style of ["blur", "fade", "raw"]) {
+    const b = document.createElement("button");
+    b.textContent = style[0].toUpperCase() + style.slice(1);
+    b.setAttribute("aria-pressed", style === "blur");
+    b.onclick = () => {
+      morph.setStyle(style);
+      styles.querySelectorAll("button").forEach((s) => s.setAttribute("aria-pressed", s === b));
+    };
+    styles.appendChild(b);
+  }
+
+  const speeds = [1, 0.5, 0.25];
+  const speed = document.getElementById("speed");
+  speed.onclick = () => {
+    const next = speeds[(speeds.indexOf(morph.speed) + 1) % speeds.length];
+    morph.setSpeed(next);
+    speed.textContent = `${next}×`;
+    speed.dataset.slow = next !== 1;
+  };
+
+  window.morph = morph; // for poking at it from the console
+</script>
+</body>
+</html>
